@@ -6,7 +6,7 @@ You can test API in postman
 
 1) User Registeration <br>
 `(POST) /users/` <br>
-response
+=> Response
 ```
 "status": 200,
 "profile": {
@@ -16,5 +16,6 @@ response
   "email": "string",
   "createdAt": "2020-11-25T15:07:27Z",
   "updatedAt": "2020-11-25T15:07:27Z"
-}```
+}
+```
 
