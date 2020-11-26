@@ -7,10 +7,26 @@ register:
   controller: App\Controller\AuthController::register
   methods: POST
 
-api_login_check:
+#api_login_check:
+ # path: /sessions
+#  controller: App\Controller\AuthController::getTokenUser
+ # methods: POST
+
+login:
   path: /sessions
-  controller: App\Controller\AuthController::getTokenUser
+  controller: App\Controller\AuthController::login
   methods: POST
+
+createRental:
+  path: /rentals
+  controller: App\Controller\CarrentalsController::createRental
+  methods: ['POST', 'GET']
+
+  
+addCar:
+  path: /cars
+  controller: App\Controller\CarrentalsController::cars
+  methods: ['POST', 'GET']
 
 test:
   path: /api/test

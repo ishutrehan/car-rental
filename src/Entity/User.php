@@ -2,11 +2,12 @@
 namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+
 /**
  * @ORM\Table(name="users")
  * @ORM\Entity
  */
-class User implements UserInterface
+class User
 {
  /**
   * @ORM\Column(type="integer")
@@ -15,11 +16,11 @@ class User implements UserInterface
   */
  private $id;
  /**
-  * @ORM\Column(name="firstName", type="string", length=25, unique=true)
+  * @ORM\Column(name="firstName", type="string", length=25)
   */
  private $firstName;
  /**
-  * @ORM\Column(name="lastName", type="string", length=25, unique=true)
+  * @ORM\Column(name="lastName", type="string", length=25)
   */
   private $lastName;
  /**
@@ -31,6 +32,16 @@ class User implements UserInterface
   * @ORM\Column(type="string", length=45)
   */
  private $email;
+
+ /**
+    * @ORM\Column(name="createdAt", type="datetime")
+    */
+    private $createdAt;
+    
+ /**
+    * @ORM\Column(name="updatedAt", type="datetime")
+    */
+    private $updatedAt;
 
  /**
    * @return mixed
@@ -118,6 +129,37 @@ class User implements UserInterface
  {
   $this->email = $email;
  }
+ 
+ /**
+  * @return mixed
+  */
+  public function getCreatedat(): ?\DateTime
+  {
+   return $this->createdAt;
+  }
+ 
+  /**
+   * @param mixed $createdAt
+   */
+  public function setCreatedAt($createdAt): void
+  {
+   $this->createdAt = $createdAt;
+  }
+  /**
+  * @return mixed
+  */
+  public function getUpdatedAt(): ?\DateTime
+  {
+   return $this->updatedAt;
+  }
+ 
+  /**
+   * @param mixed $updatedAt
+   */
+  public function setUpdatedAt($updatedAt): void
+  {
+   $this->updatedAt = $updatedAt;
+  }
 
  public function eraseCredentials()
  {

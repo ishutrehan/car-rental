@@ -79,12 +79,18 @@
   public function respondWithSuccess($user, $headers = [])
   {
    $data = [
-    'status' => $this->getStatusCode(),
+    //'status' => $this->getStatusCode(),
     'profile' => $user
    // 'success' => $success,
    ];
 
    return new JsonResponse($data, $this->getStatusCode(), $headers);
+  }
+  
+  public function respondWithCarSuccess($response, $headers = [])
+  {
+   
+   return new JsonResponse($response, $this->getStatusCode(), $headers);
   }
 
 
@@ -98,6 +104,7 @@
   public function respondUnauthorized($message = 'Not authorized!')
   {
    return $this->setStatusCode(401)->respondWithErrors($message);
+  
   }
 
   /**
@@ -109,7 +116,8 @@
    */
   public function respondValidationError($message = 'Validation errors')
   {
-   return $this->setStatusCode(422)->respondWithErrors($message);
+    return new JsonResponse($message, $this->getStatusCode());
+   //return $this->setStatusCode(422)->respondWithErrors($message);
   }
 
   /**

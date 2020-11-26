@@ -10,6 +10,7 @@
  use Symfony\Component\Routing\Annotation\Route;
  use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
  use Symfony\Component\Security\Core\User\UserInterface;
+ 
 
  class AuthController extends ApiController
  {
@@ -54,6 +55,31 @@
   public function getTokenUser(UserInterface $user, JWTTokenManagerInterface $JWTManager)
   {
    return new JsonResponse(['token' => $JWTManager->create($user)]);
+  }
+  
+  public function login(Request $request)
+  {
+    $password = $request->get('password');
+    $email = $request->get('email');
+    if (empty($password) || empty($email)){
+        $validation = [
+            "type" => "Validation",
+            "message" => "Invalid data format.",
+            "errors" => "email or password is required"
+        ];
+        return $this->respondValidationError((object)$validation);
+    }
+    $em = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email, 'password' => $password));
+    
+    $response = [
+        "id" => $em->getId(),
+        "firstName" => $em->getFirstname(),
+        "lastName" => $em->getLastname(),
+        "email" => $em->getEmail(),
+        "createdAt" => $em->getCreatedAt(),
+        "updatedAt" => $em->getUpdatedAt()
+    ];
+    return $this->respondWithSuccess((object)$response);
   }
 
  }
