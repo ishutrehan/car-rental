@@ -24,27 +24,46 @@
    $password = $request->get('password');
    $email = $request->get('email');
 
-   /*if (empty($username) || empty($password) || empty($email)){
-    return $this->respondValidationError("Invalid Username or Password or Email");
-   }*/
+    if (empty($password) || empty($email)  || empty($firstName)  || empty($lastName)){
+        $validation = [
+            "type" => "Validation",
+            "message" => "Invalid data format.",
+            "errors" => "firstName, lastName, email or password is required!"
+        ];
+        return $this->respondValidationError((object)$validation);
+    }
+  
 
    $user = new User($email);
-   //$user->setPassword($encoder->encodePassword($user, $password));
-   $user->setPassword($password);
-   $user->setEmail($email);
-   $user->setFirstname($firstName);
-   $user->setLastname($lastName);
-   $em->persist($user);
-   $em->flush();
-   $response = [
-    "id" => $user->getId(),
-    "firstName" => $user->getFirstname(),
-    "lastName" => $user->getLastname(),
-    "email" => $user->getEmail(),
-    "createdAt" => date("y-m-d H:i:s"),
-    "updatedAt" => date("y-m-d H:i:s")
-   ];
-   return $this->respondWithSuccess((object)$response);
+   $record = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email));
+   
+    if(empty($record)){
+        //$user->setPassword($encoder->encodePassword($user, $password));
+        $user->setPassword($password);
+        $user->setEmail($email);
+        $user->setFirstname($firstName);
+        $user->setLastname($lastName);
+        $user->setCreatedAt(new \DateTime(date('y-m-d H:i:s')));
+        $user->setUpdatedAt(new \DateTime(date('y-m-d H:i:s')));
+        $em->persist($user);
+        $em->flush();
+        $response = [
+            "id" => $user->getId(),
+            "firstName" => $user->getFirstname(),
+            "lastName" => $user->getLastname(),
+            "email" => $user->getEmail(),
+            "createdAt" => $user->getCreatedat(),
+            "updatedAt" => $user->getUpdatedAt()
+        ];
+        return $this->respondWithSuccess((object)$response);
+    }else{
+        $response = [
+            "type" => "E_CONFLICT_USER",
+            "message" => "Entity conflict."
+        ];
+        return $this->respondValidationError((object)$response);
+    }
+   
   }
 
   /**
