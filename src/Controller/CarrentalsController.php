@@ -22,7 +22,7 @@ class CarrentalsController extends ApiController
     if($request->isMethod('post')){
         $all = apache_request_headers();
         if (isset($all['Authorization'])){
-            if($all['Authorization'] == $_COOKIE['jwt']){
+            if(isset($_COOKIE['jwt']) && $all['Authorization'] == $_COOKIE['jwt']){
                 $request = $this->transformJsonBody($request);
                 $em = $this->getDoctrine()->getManager();
                 $subjectID = $request->get('subjectID');
@@ -76,7 +76,7 @@ class CarrentalsController extends ApiController
         $all = apache_request_headers();
        
         if (isset($all['Authorization'])){
-            if($all['Authorization'] == $_COOKIE['jwt']){
+            if(isset($_COOKIE['jwt']) && $all['Authorization'] == $_COOKIE['jwt']){
 
                 $rentals = $this->getDoctrine()->getRepository(Rental::class)->createQueryBuilder('c')
                 ->getQuery();
