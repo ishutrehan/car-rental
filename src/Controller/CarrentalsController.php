@@ -30,7 +30,7 @@ class CarrentalsController extends ApiController
                 $rentalTo = $request->get('rentalTo');
                 if (empty($subjectID) || empty($rentalFrom) || empty($rentalTo)){
                     $validation = [
-                        "type" => "Unauthorized",
+                        "type" => "E_TOKEN_EXPIRED",
                         "message" => "Not authorized."
                     ];
                     return $this->respondValidationError((object)$validation);
@@ -86,8 +86,8 @@ class CarrentalsController extends ApiController
             }else{
                 
                 $validation = [
-                    "type" => "Expired",
-                    "error" => "Token Expired",
+                    "type" => "E_TOKEN_EXPIRED",
+                    "message" => "Not authorized."
                 ];
                 return $this->respondValidationError((object)$validation);
             }
