@@ -17,12 +17,28 @@ _Response !_
   "updatedAt": "2020-11-25T15:07:27Z"
 }
 ```
+### **Profiles** 
+`(GET) {url}/users/` <br>
+_Response !_
+```
+[
+  {
+    "id": "string",
+    "firstName": "string",
+    "lastName": "string",
+    "email": "string",
+    "createdAt": "2020-11-25T15:07:27Z",
+    "updatedAt": "2020-11-25T15:07:27Z"
+  }
+]
+```
 
 ### **Login** 
 `(POST) {url}/sessions/` <br>
 _Response !_
 ```
 "profile": {
+  "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiZGV2QGdtYWlsLmNvbSIsImlhdCI6MTYwNjQ2NDkyMywiZXhwIjoxNjA2NDY4NTIzfQ.hgQZJd5HKirhKPwaxTmUJMZ4OIrJiDYQ3iDcHyXfQ6g",
   "id": "string",
   "firstName": "string",
   "lastName": "string",
@@ -33,6 +49,7 @@ _Response !_
 ```
 ### **Create Rentals** 
 `(POST) {url}/rentals/` <br>
+You need send Authorization Header also , you will get that from login response
 _Response !_
 ```
 {
@@ -45,6 +62,7 @@ _Response !_
 
 ### **Get Rentals** 
 `(GET) {url}/rentals/` <br>
+You need send Authorization Header also , you will get that from login response
 _Response !_
 ```
 {
