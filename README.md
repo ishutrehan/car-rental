@@ -63,7 +63,8 @@ _Response !_
 
 ### **Get Rentals** 
 `(GET) {url}/rentals/` <br>
-You need send Authorization Header also , you will get that from login response
+You need send Authorization Header also , you will get that from login response <br/>
+
 _Response !_
 ```
 {
