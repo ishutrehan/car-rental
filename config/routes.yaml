@@ -5,7 +5,7 @@
 register:
   path: /users
   controller: App\Controller\AuthController::register
-  methods: POST
+  methods: ['POST', 'GET']
 
 #api_login_check:
  # path: /sessions

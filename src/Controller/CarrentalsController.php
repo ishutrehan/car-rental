@@ -20,47 +20,83 @@ class CarrentalsController extends ApiController
   public function createRental(Request $request)
   {
     if($request->isMethod('post')){
-        $request = $this->transformJsonBody($request);
-        $em = $this->getDoctrine()->getManager();
-        $subjectID = $request->get('subjectID');
-        $rentalFrom = $request->get('rentalFrom');
-        $rentalTo = $request->get('rentalTo');
-        if (empty($subjectID) || empty($rentalFrom) || empty($rentalTo)){
+        $all = apache_request_headers();
+        if (isset($all['Authorization'])){
+            if($all['Authorization'] == $_COOKIE['jwt']){
+                $request = $this->transformJsonBody($request);
+                $em = $this->getDoctrine()->getManager();
+                $subjectID = $request->get('subjectID');
+                $rentalFrom = $request->get('rentalFrom');
+                $rentalTo = $request->get('rentalTo');
+                if (empty($subjectID) || empty($rentalFrom) || empty($rentalTo)){
+                    $validation = [
+                        "type" => "Unauthorized",
+                        "message" => "Not authorized."
+                    ];
+                    return $this->respondValidationError((object)$validation);
+                }
+                $rental = new Rental();
+                $rental->setSubjectid($subjectID);
+                $rentalFrom = strtotime($rentalFrom);
+                $rentalFrom = date("Y-m-d H:i:s", $rentalFrom);
+                $rental->setRentalfrom(date($rentalFrom));
+                $rentalTo = strtotime($rentalTo);
+                $rentalTo = date("Y-m-d H:i:s", $rentalTo);
+                $rental->setRentalfrom(date($rentalTo));
+                $rental->setRentalto($rentalTo);
+                $rental->setCreatedAt(date('y-m-d H:i:s'));
+                $rental->setUpdatedAt(date('y-m-d H:i:s'));
+                $em->persist($rental);
+                $em->flush();
+
+                $record = $this->getDoctrine()->getRepository(Rental::class)->findOneBy(array('id' => $rental->getId()));
+                
+                $response = [
+                    "from" => $record->getRentalfrom(),
+                    "to" => $record->getRentalfrom(),
+                    "subjectID" => $record->getSubjectid()
+                ];
+                return $this->respondWithCarSuccess((object)$response);
+            }else{
+                
+                $validation = [
+                    "type" => "Expired",
+                    "error" => "Token Expired",
+                ];
+                return $this->respondValidationError((object)$validation);
+            }
+        }else{
             $validation = [
-                "type" => "Unauthorized",
-                "message" => "Not authorized."
+                "type" => "Unauthorized"
             ];
             return $this->respondValidationError((object)$validation);
         }
-        $rental = new Rental();
-        $rental->setSubjectid($subjectID);
-        $rentalFrom = strtotime($rentalFrom);
-        $rentalFrom = date("Y-m-d H:i:s", $rentalFrom);
-        $rental->setRentalfrom(date($rentalFrom));
-        $rentalTo = strtotime($rentalTo);
-        $rentalTo = date("Y-m-d H:i:s", $rentalTo);
-        $rental->setRentalfrom(date($rentalTo));
-        $rental->setRentalto($rentalTo);
-        $rental->setCreatedAt(date('y-m-d H:i:s'));
-        $rental->setUpdatedAt(date('y-m-d H:i:s'));
-        $em->persist($rental);
-        $em->flush();
-
-        $record = $this->getDoctrine()->getRepository(Rental::class)->findOneBy(array('id' => $rental->getId()));
-        
-        $response = [
-            "from" => $record->getRentalfrom(),
-            "to" => $record->getRentalfrom(),
-            "subjectID" => $record->getSubjectid()
-        ];
-        return $this->respondWithCarSuccess((object)$response);
     }
     if($request->isMethod('get')){
-        $rentals = $this->getDoctrine()->getRepository(Rental::class)->createQueryBuilder('c')
-        ->getQuery();
-        $result = $rentals->getResult(Query::HYDRATE_ARRAY);
+        $all = apache_request_headers();
+       
+        if (isset($all['Authorization'])){
+            if($all['Authorization'] == $_COOKIE['jwt']){
 
-        return $this->respondWithCarSuccess($result);
+                $rentals = $this->getDoctrine()->getRepository(Rental::class)->createQueryBuilder('c')
+                ->getQuery();
+                $result = $rentals->getResult(Query::HYDRATE_ARRAY);
+        
+                return $this->respondWithCarSuccess($result);
+            }else{
+                
+                $validation = [
+                    "type" => "Expired",
+                    "error" => "Token Expired",
+                ];
+                return $this->respondValidationError((object)$validation);
+            }
+        }else{
+            $validation = [
+                "type" => "Unauthorized"
+            ];
+            return $this->respondValidationError((object)$validation);
+        }
     }
     
   }

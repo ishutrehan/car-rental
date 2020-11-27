@@ -10,60 +10,78 @@
  use Symfony\Component\Routing\Annotation\Route;
  use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
  use Symfony\Component\Security\Core\User\UserInterface;
+ use \Firebase\JWT\JWT;
+ use Symfony\Component\HttpFoundation\Session\Session;
+ use Symfony\Component\HttpFoundation\Cookie;
+ use Doctrine\ORM\Query;
+ 
  
 
  class AuthController extends ApiController
  {
-
+    
   public function register(Request $request, UserPasswordEncoderInterface $encoder)
   {
-   $em = $this->getDoctrine()->getManager();
-   $request = $this->transformJsonBody($request);
-   $firstName = $request->get('firstName');
-   $lastName = $request->get('lastName');
-   $password = $request->get('password');
-   $email = $request->get('email');
+    if($request->isMethod('post')){
+        $em = $this->getDoctrine()->getManager();
+        $request = $this->transformJsonBody($request);
+        $firstName = $request->get('firstName');
+        $lastName = $request->get('lastName');
+        $password = $request->get('password');
+        $email = $request->get('email');
 
-    if (empty($password) || empty($email)  || empty($firstName)  || empty($lastName)){
+        if (empty($password) || empty($email)  || empty($firstName)  || empty($lastName)){
+            $validation = [
+                "type" => "Validation",
+                "message" => "Invalid data format.",
+                "errors" => "firstName, lastName, email or password is required!"
+            ];
+            return $this->respondValidationError((object)$validation);
+        }
+        
+
+        $user = new User($email);
+        $record = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email));
+        
+        if(empty($record)){
+            //$user->setPassword($encoder->encodePassword($user, $password));
+            $user->setPassword($password);
+            $user->setEmail($email);
+            $user->setFirstname($firstName);
+            $user->setLastname($lastName);
+            $user->setCreatedAt(new \DateTime(date('y-m-d H:i:s')));
+            $user->setUpdatedAt(new \DateTime(date('y-m-d H:i:s')));
+            $em->persist($user);
+            $em->flush();
+            $response = [
+                "id" => $user->getId(),
+                "firstName" => $user->getFirstname(),
+                "lastName" => $user->getLastname(),
+                "email" => $user->getEmail(),
+                "createdAt" => $user->getCreatedat(),
+                "updatedAt" => $user->getUpdatedAt()
+            ];
+            return $this->respondWithSuccess((object)$response);
+        }else{
+            $response = [
+                "type" => "E_CONFLICT_USER",
+                "message" => "Entity conflict."
+            ];
+            return $this->respondValidationError((object)$response);
+        }
+    }elseif($request->isMethod('get')){
+        $users = $this->getDoctrine()->getRepository(User::class)->createQueryBuilder('c')
+                ->getQuery();
+        $result = $users->getResult(Query::HYDRATE_ARRAY);
+
+        return $this->respondWithCarSuccess($result);
+    }else{
         $validation = [
-            "type" => "Validation",
-            "message" => "Invalid data format.",
-            "errors" => "firstName, lastName, email or password is required!"
+            "type" => "not allowed",
+            "message" => "Method not allowed"
         ];
         return $this->respondValidationError((object)$validation);
     }
-  
-
-   $user = new User($email);
-   $record = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email));
-   
-    if(empty($record)){
-        //$user->setPassword($encoder->encodePassword($user, $password));
-        $user->setPassword($password);
-        $user->setEmail($email);
-        $user->setFirstname($firstName);
-        $user->setLastname($lastName);
-        $user->setCreatedAt(new \DateTime(date('y-m-d H:i:s')));
-        $user->setUpdatedAt(new \DateTime(date('y-m-d H:i:s')));
-        $em->persist($user);
-        $em->flush();
-        $response = [
-            "id" => $user->getId(),
-            "firstName" => $user->getFirstname(),
-            "lastName" => $user->getLastname(),
-            "email" => $user->getEmail(),
-            "createdAt" => $user->getCreatedat(),
-            "updatedAt" => $user->getUpdatedAt()
-        ];
-        return $this->respondWithSuccess((object)$response);
-    }else{
-        $response = [
-            "type" => "E_CONFLICT_USER",
-            "message" => "Entity conflict."
-        ];
-        return $this->respondValidationError((object)$response);
-    }
-   
   }
 
   /**
@@ -78,6 +96,7 @@
   
   public function login(Request $request)
   {
+    $now_seconds = time();
     $password = $request->get('password');
     $email = $request->get('email');
     if (empty($password) || empty($email)){
@@ -88,17 +107,34 @@
         ];
         return $this->respondValidationError((object)$validation);
     }
-    $em = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email, 'password' => $password));
-    
-    $response = [
-        "id" => $em->getId(),
-        "firstName" => $em->getFirstname(),
-        "lastName" => $em->getLastname(),
-        "email" => $em->getEmail(),
-        "createdAt" => $em->getCreatedAt(),
-        "updatedAt" => $em->getUpdatedAt()
+   
+    $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email, 'password' => $password));
+    $payload = [
+        "user" => $user->getEmail(),
+        "iat" => $now_seconds,
+        "exp" => $now_seconds+(60*60),  // Maximum expiration time is one hour
     ];
-    return $this->respondWithSuccess((object)$response);
+
+    $jwt = JWT::encode($payload,  getenv("JWT_SECRET_KEY"), 'HS256');
+    //$decoded = JWT::decode($jwt, $publicKey, array('HS256'));
+    $res = [
+        "accessToken" => $jwt,
+        "id" => $user->getId(),
+        "firstName" => $user->getFirstname(),
+        "lastName" => $user->getLastname(),
+        "email" => $user->getEmail(),
+        "createdAt" => $user->getCreatedAt(),
+        "updatedAt" => $user->getUpdatedAt()
+    ];
+    //$session = new Session();
+    //$session->set('user', (object)$response);
+    $useHttps = false;
+    $response = new Response();
+   // setcookie("jwt", $jwt, $payload['exp'], "/", "", $useHttps, true);
+    $cookie = new Cookie("jwt", $jwt, $payload['exp'], "/", "", $useHttps, true);
+    $response->headers->setCookie($cookie);
+    $response->sendHeaders();
+    return $this->respondWithSuccess($res);
   }
 
  }
