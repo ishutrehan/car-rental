@@ -45,7 +45,7 @@
         
         if(empty($record)){
             //$user->setPassword($encoder->encodePassword($user, $password));
-            $user->setPassword($password);
+            $user->setPassword(md5($password));
             $user->setEmail($email);
             $user->setFirstname($firstName);
             $user->setLastname($lastName);
@@ -108,7 +108,7 @@
         return $this->respondValidationError((object)$validation);
     }
    
-    $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email, 'password' => $password));
+    $user = $this->getDoctrine()->getRepository(User::class)->findOneBy(array('email' => $email, 'password' => md5($password)));
     $payload = [
         "user" => $user->getEmail(),
         "iat" => $now_seconds,
